@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from datatrans.models import KeyValue
+from datatrans.models import KeyValue, TranslationCacheSettings
 
 
 class KeyValueAdmin(admin.ModelAdmin):
@@ -11,3 +11,11 @@ class KeyValueAdmin(admin.ModelAdmin):
     list_filter = ('content_type', 'language', 'edited', 'fuzzy')
 
 admin.site.register(KeyValue, KeyValueAdmin)
+
+
+class TranslationCacheSettingsAdmin(admin.ModelAdmin):
+    list_display = ('id', 'enabled',)
+    list_editable = ('enabled',)
+
+
+admin.site.register(TranslationCacheSettings, TranslationCacheSettingsAdmin)

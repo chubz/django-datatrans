@@ -8,39 +8,18 @@ class Migration(SchemaMigration):
 
     def forwards(self, orm):
         
-        # Adding model 'ModelWordCount'
-        db.create_table('datatrans_modelwordcount', (
+        # Adding model 'TranslationCacheSettings'
+        db.create_table('datatrans_translationcachesettings', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('total_words', self.gf('django.db.models.fields.IntegerField')(default=0)),
-            ('valid', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('content_type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['contenttypes.ContentType'], unique=True)),
+            ('enabled', self.gf('django.db.models.fields.BooleanField')(default=False)),
         ))
-        db.send_create_signal('datatrans', ['ModelWordCount'])
-
-        # Adding model 'FieldWordCount'
-        db.create_table('datatrans_fieldwordcount', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('total_words', self.gf('django.db.models.fields.IntegerField')(default=0)),
-            ('valid', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('content_type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['contenttypes.ContentType'])),
-            ('field', self.gf('django.db.models.fields.CharField')(max_length=64, db_index=True)),
-        ))
-        db.send_create_signal('datatrans', ['FieldWordCount'])
-
-        # Adding unique constraint on 'FieldWordCount', fields ['content_type', 'field']
-        db.create_unique('datatrans_fieldwordcount', ['content_type_id', 'field'])
+        db.send_create_signal('datatrans', ['TranslationCacheSettings'])
 
 
     def backwards(self, orm):
         
-        # Removing unique constraint on 'FieldWordCount', fields ['content_type', 'field']
-        db.delete_unique('datatrans_fieldwordcount', ['content_type_id', 'field'])
-
-        # Deleting model 'ModelWordCount'
-        db.delete_table('datatrans_modelwordcount')
-
-        # Deleting model 'FieldWordCount'
-        db.delete_table('datatrans_fieldwordcount')
+        # Deleting model 'TranslationCacheSettings'
+        db.delete_table('datatrans_translationcachesettings')
 
 
     models = {
@@ -61,11 +40,14 @@ class Migration(SchemaMigration):
         },
         'datatrans.keyvalue': {
             'Meta': {'unique_together': "(('digest', 'language'),)", 'object_name': 'KeyValue'},
+            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']", 'null': 'True'}),
             'digest': ('django.db.models.fields.CharField', [], {'max_length': '40', 'db_index': 'True'}),
             'edited': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'field': ('django.db.models.fields.TextField', [], {}),
             'fuzzy': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'language': ('django.db.models.fields.CharField', [], {'max_length': '5', 'db_index': 'True'}),
+            'object_id': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True'}),
             'value': ('django.db.models.fields.TextField', [], {'blank': 'True'})
         },
         'datatrans.modelwordcount': {
@@ -74,6 +56,19 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'total_words': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'valid': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
+        },
+        'datatrans.statictranslation': {
+            'Meta': {'object_name': 'StaticTranslation'},
+            'app_label': ('django.db.models.fields.CharField', [], {'max_length': '32', 'db_index': 'True'}),
+            'digest': ('django.db.models.fields.CharField', [], {'max_length': '40', 'db_index': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'language': ('django.db.models.fields.CharField', [], {'max_length': '5', 'db_index': 'True'}),
+            'value': ('django.db.models.fields.TextField', [], {'blank': 'True'})
+        },
+        'datatrans.translationcachesettings': {
+            'Meta': {'object_name': 'TranslationCacheSettings'},
+            'enabled': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
         }
     }
 

@@ -3,6 +3,7 @@ from django.core.cache import cache
 from django.db import models
 from django.db.models import signals
 from django.db.models.query import QuerySet
+from django.db.utils import DatabaseError
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 
@@ -48,11 +49,15 @@ class KeyValueManager(models.Manager):
                                     object_id=obj.id,
                                     field=field)
             keyvalue = keyvalues[0]
-        
+        except DatabaseError:
+            print u'WARNING: Datatrans KeyValue table not yet created!'
+            return None
         return keyvalue
 
     def lookup(self, key, language, obj, field):
         kv = self.get_keyvalue(key, language, obj, field)
+        if not kv:
+            return key
         if kv.edited:
             return kv.value
         else:
@@ -185,3 +190,27 @@ class FieldWordCount(WordCount):
 
     class Meta:
         unique_together = ('content_type', 'field')
+
+
+
+class StaticTranslationManager(models.Manager):
+    pass
+
+
+class StaticTranslation(models.Model):
+    '''
+    Model for storing static translations which are served through the
+    patched Django translation/gettext system.
+    '''
+    digest = models.CharField(max_length=40, db_index=True)
+    app_label = models.CharField(max_length=32, db_index=True)
+    language = models.CharField(max_length=5, db_index=True, choices=settings.LANGUAGES)
+
+    value = models.TextField(blank=True)
+
+    objects = StaticTranslationManager()
+
+
+class TranslationCacheSettings(models.Model):
+    enabled = models.BooleanField(blank=True, default=False)
+
