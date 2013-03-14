@@ -202,15 +202,32 @@ class StaticTranslation(models.Model):
     Model for storing static translations which are served through the
     patched Django translation/gettext system.
     '''
-    digest = models.CharField(max_length=40, db_index=True)
-    app_label = models.CharField(max_length=32, db_index=True)
+    digest = models.CharField(max_length=40, db_index=True, blank=True)
+    app_label = models.CharField(max_length=32, db_index=True, blank=True)
     language = models.CharField(max_length=5, db_index=True, choices=settings.LANGUAGES)
 
+    original = models.TextField(blank=True)
     value = models.TextField(blank=True)
 
     objects = StaticTranslationManager()
+    
+    def save(self, *args, **kwargs):
+        if self.original:
+            self.digest = sha1(self.original.encode('utf-8')).hexdigest()
+        
+        super(StaticTranslation, self).save(*args, **kwargs)
+        
+        # Update the cache!
+        from django.core.cache import cache
+        cache.set(self.language + ';' + self.digest, self.value, 3600 * 24 * 7)
 
 
 class TranslationCacheSettings(models.Model):
     enabled = models.BooleanField(blank=True, default=False)
+    enable_static_translations = models.BooleanField(blank=True, default=False)
+    feed_static_translations = models.BooleanField(blank=True, default=False)
+    
+    class Meta:
+        verbose_name = 'translation cache settings'
+        verbose_name_plural = 'translation cache settings'
 
